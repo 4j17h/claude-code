@@ -1,0 +1,51 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  verify-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify committed baseline
+        run: bash scripts/verify-setup.sh --repo-only
+
+      - name: Validate bash syntax
+        run: bash -n scripts/setup-macos.sh scripts/verify-setup.sh scripts/claude-api-mode.sh scripts/claude-batch-mode.sh scripts/claude-budget-mode.sh scripts/start-usage-dashboard.sh
+
+  verify-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify committed baseline
+        shell: pwsh
+        run: .\scripts\verify-setup.ps1 -RepoOnly
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $files = @(
+            'scripts\setup-windows.ps1',
+            'scripts\verify-setup.ps1',
+            'scripts\claude-api-mode.ps1',
+            'scripts\claude-batch-mode.ps1',
+            'scripts\claude-budget-mode.ps1',
+            'scripts\start-usage-dashboard.ps1'
+          )
+
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $file), [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_ }
+              exit 1
+            }
+          }

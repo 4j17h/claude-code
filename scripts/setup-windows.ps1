@@ -137,18 +137,8 @@ function Ensure-LocalFiles {
 
   $envFile = Join-Path $RepoRoot '.env'
   if (-not (Test-Path $envFile)) {
-    Write-Step 'Creating local .env placeholder'
-    @'
-# Local-only Anthropic API mode.
-# Leave blank if you use Claude subscription login instead.
-ANTHROPIC_API_KEY=
-
-# Optional for scripted subscription auth instead of browser login.
-# CLAUDE_CODE_OAUTH_TOKEN=
-
-# Optional for API-mode automation. 1-hour cache writes cost more than 5-minute writes.
-# ENABLE_PROMPT_CACHING_1H=1
-'@ | Set-Content -Path $envFile -Encoding utf8
+    Write-Step 'Creating local .env from .env.template'
+    Copy-Item -Path (Join-Path $RepoRoot '.env.template') -Destination $envFile
   }
 
   $localSettings = Join-Path $claudeDir 'settings.local.json'

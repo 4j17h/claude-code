@@ -29,6 +29,64 @@ have() {
   command -v "$1" >/dev/null 2>&1
 }
 
+extract_claude_checksum() {
+  local manifest_json="$1"
+  local platform="$2"
+  local normalized_json
+
+  normalized_json="$(printf '%s' "$manifest_json" | tr -d '\n\r\t' | sed 's/ \+/ /g')"
+  if [[ $normalized_json =~ \"$platform\"[^}]*\"checksum\"[[:space:]]*:[[:space:]]*\"([a-f0-9]{64})\" ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  return 1
+}
+
+detect_claude_platform() {
+  local arch
+
+  case "$(uname -m)" in
+    x86_64|amd64) arch="x64" ;;
+    arm64|aarch64) arch="arm64" ;;
+    *) die "Unsupported macOS architecture: $(uname -m)" ;;
+  esac
+
+  if [[ "$arch" == "x64" ]] && [[ "$(sysctl -n sysctl.proc_translated 2>/dev/null || true)" == "1" ]]; then
+    arch="arm64"
+  fi
+
+  printf 'darwin-%s\n' "$arch"
+}
+
+install_claude_binary_fallback() {
+  local download_base_url="https://downloads.claude.ai/claude-code-releases"
+  local version platform manifest_json checksum tmp_binary target_binary actual_checksum
+
+  platform="$(detect_claude_platform)"
+  version="$(curl -fsSL "$download_base_url/latest")" || return 1
+  manifest_json="$(curl -fsSL "$download_base_url/$version/manifest.json")" || return 1
+  checksum="$(extract_claude_checksum "$manifest_json" "$platform")" || return 1
+
+  target_binary="$HOME/.local/bin/claude"
+  tmp_binary="$(mktemp "$HOME/.local/bin/claude.tmp.XXXXXX")"
+
+  if ! curl -fsSL -o "$tmp_binary" "$download_base_url/$version/$platform/claude"; then
+    rm -f "$tmp_binary"
+    return 1
+  fi
+
+  actual_checksum="$(shasum -a 256 "$tmp_binary" | cut -d' ' -f1)"
+  if [[ "$actual_checksum" != "$checksum" ]]; then
+    warn "Downloaded Claude binary checksum did not match the release manifest"
+    rm -f "$tmp_binary"
+    return 1
+  fi
+
+  chmod +x "$tmp_binary"
+  mv "$tmp_binary" "$target_binary"
+}
+
 prepend_path() {
   local path_entry="$1"
   [[ -d "$path_entry" ]] || return 1
@@ -94,12 +152,22 @@ ensure_node() {
 }
 
 ensure_claude() {
+  mkdir -p "$HOME/.local/bin"
+
   if ! have claude; then
     log "Installing Claude Code with the native macOS installer"
-    curl -fsSL https://claude.ai/install.sh | bash
+    if ! curl -fsSL https://claude.ai/install.sh | bash; then
+      warn "Native Claude installer failed; attempting direct binary fallback"
+    fi
   fi
 
   ensure_user_path_entry "$HOME/.local/bin" || true
+
+  if ! have claude; then
+    warn "Native installer did not produce a usable claude launcher; downloading the official Claude binary directly"
+    install_claude_binary_fallback || die "Claude Code was not found after installation."
+    ensure_user_path_entry "$HOME/.local/bin" || true
+  fi
 
   have claude || die "Claude Code was not found after installation."
 
@@ -129,18 +197,8 @@ ensure_local_files() {
   mkdir -p "$REPO_ROOT/.claude"
 
   if [[ ! -f "$REPO_ROOT/.env" ]]; then
-    log "Creating local .env placeholder"
-    cat > "$REPO_ROOT/.env" <<'EOF'
-# Local-only Anthropic API mode.
-# Leave blank if you use Claude subscription login instead.
-ANTHROPIC_API_KEY=
-
-# Optional for scripted subscription auth instead of browser login.
-# CLAUDE_CODE_OAUTH_TOKEN=
-
-# Optional for API-mode automation. 1-hour cache writes cost more than 5-minute writes.
-# ENABLE_PROMPT_CACHING_1H=1
-EOF
+    log "Creating local .env from .env.template"
+    cp "$REPO_ROOT/.env.template" "$REPO_ROOT/.env"
   fi
 
   if [[ ! -f "$REPO_ROOT/.claude/settings.local.json" ]]; then
@@ -166,7 +224,9 @@ EOF
 }
 
 install_claude_usage() {
-  [[ "$INSTALL_CLAUDE_USAGE" == "1" ]] || return
+  if [[ "$INSTALL_CLAUDE_USAGE" != "1" ]]; then
+    return 0
+  fi
 
   ensure_git
   ensure_python3
@@ -188,7 +248,9 @@ install_claude_usage() {
 }
 
 install_rtk() {
-  [[ "$ENABLE_RTK" == "1" ]] || return
+  if [[ "$ENABLE_RTK" != "1" ]]; then
+    return 0
+  fi
 
   if ! have rtk; then
     if have brew; then
@@ -211,7 +273,9 @@ install_rtk() {
 }
 
 install_cozempic() {
-  [[ "$ENABLE_COZEMPIC" == "1" ]] || return
+  if [[ "$ENABLE_COZEMPIC" != "1" ]]; then
+    return 0
+  fi
 
   ensure_uv
 
@@ -234,7 +298,9 @@ install_cozempic() {
 }
 
 install_code_review_graph() {
-  [[ "$ENABLE_CODE_REVIEW_GRAPH" == "1" ]] || return
+  if [[ "$ENABLE_CODE_REVIEW_GRAPH" != "1" ]]; then
+    return 0
+  fi
 
   ensure_uv
 
@@ -257,7 +323,9 @@ install_code_review_graph() {
 }
 
 install_agent_browser() {
-  [[ "$ENABLE_AGENT_BROWSER" == "1" ]] || return
+  if [[ "$ENABLE_AGENT_BROWSER" != "1" ]]; then
+    return 0
+  fi
 
   if have brew; then
     log "Installing agent-browser via Homebrew"

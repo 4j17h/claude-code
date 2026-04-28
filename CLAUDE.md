@@ -5,6 +5,12 @@
 - Prefer current stable Claude Code with a known-good minimum version floor.
 - Do not rely on downgrade pins or User-Agent spoofing as a default workflow.
 
+## Support model
+- The supported baseline is official Claude Code plus the shared settings, setup scripts, verify scripts, and launch modes in this repository.
+- Local bootstrap files are machine-specific and created by the setup scripts: `.env`, `CLAUDE.local.md`, and `.claude/settings.local.json`.
+- Optional integrations are tiered separately from the baseline so they do not block initial adoption.
+- See `docs/support-matrix.md` for support tiers, ownership boundaries, and mode selection.
+
 ## Shared workflow defaults
 - Keep startup context stable for better cache reuse.
 - Avoid changing models, plugins, or MCP servers in the middle of a session unless you need a deliberate reset.
@@ -41,9 +47,11 @@
 
 ## Team bootstrap flow
 - Clone the repository.
+- Optional preflight: run `scripts/verify-setup.sh --repo-only` or `scripts/verify-setup.ps1 -RepoOnly` to validate the committed baseline.
 - Run the setup script for your OS.
 - The setup scripts persist the common user-bin directory (`~/.local/bin` on macOS, `%USERPROFILE%\.local\bin` on Windows) so fresh terminals can find `claude`.
 - Log in with your Claude subscription unless you intentionally choose API mode.
+- Use `scripts/verify-setup.*` to confirm the supported baseline after setup.
 - Use budget mode for low-stakes exploration or when you are close to usage limits.
 - Use batch mode for repeatable scripted prompts or automation glue.
-- Run the verify script after setup.
+- Optional tools should be enabled only after the baseline is working.
