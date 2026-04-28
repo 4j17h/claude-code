@@ -1,0 +1,49 @@
+# Claude Code Team Setup
+
+## Purpose
+- This repository standardizes a fast, low-friction Claude Code setup for macOS and Windows.
+- Prefer current stable Claude Code with a known-good minimum version floor.
+- Do not rely on downgrade pins or User-Agent spoofing as a default workflow.
+
+## Shared workflow defaults
+- Keep startup context stable for better cache reuse.
+- Avoid changing models, plugins, or MCP servers in the middle of a session unless you need a deliberate reset.
+- Use `/compact` early, not heroically late. The project baseline targets earlier auto-compaction on purpose.
+- Use `/clear` between unrelated tasks.
+- Check `/context`, `/usage`, and `/status` when a session feels expensive or strange.
+
+## Effort guidance
+- Use `low` or `medium` for rote search, file discovery, formatting, and narrow edits.
+- Use `high` for debugging, refactors, and multi-file implementation work.
+- Use `xhigh` for ambiguous problems, architecture decisions, and tricky root-cause analysis.
+- Avoid raising effort for mechanical tasks just because the button exists.
+
+## Cache and context hygiene
+- Prefer stable prompts and stable tools for repeat workflows.
+- For scripted multi-user runs, prefer `claude -p --exclude-dynamic-system-prompt-sections`.
+- Use `scripts/claude-batch-mode.*` when you want that cache-friendly pipe-mode pattern standardized for the team.
+- Prefer text-native context: source files, diffs, logs, CLI output, and MCP resources.
+- Avoid screenshots, PDFs, and large pasted blobs unless layout or rendering is the point.
+
+## Auth and secrets
+- Subscription login is the default path for interactive use.
+- Anthropic API mode is optional and local-only.
+- Keep API keys in local files only (`.env`, `.claude/settings.local.json`, `CLAUDE.local.md`).
+- Never put secrets in shared settings, shared rules, or committed scripts.
+
+## Optional tooling
+- Usage monitoring lives behind `scripts/start-usage-dashboard.*`.
+- Budget mode lives behind `scripts/claude-budget-mode.*` and is the cleanest official-Claude version of the "poor mode" idea: low effort, no extended thinking, no auto memory, no prompt suggestions, and earlier compaction for cheaper exploratory work.
+- RTK is opt-in. It is strongest on macOS and WSL; on native Windows, use it explicitly because hook mode is limited.
+- code-review-graph is opt-in and most useful on medium/large repositories.
+- Cozempic is experimental and only for people who run long interactive sessions.
+- agent-browser is opt-in for web automation and UI-heavy debugging.
+
+## Team bootstrap flow
+- Clone the repository.
+- Run the setup script for your OS.
+- The setup scripts persist the common user-bin directory (`~/.local/bin` on macOS, `%USERPROFILE%\.local\bin` on Windows) so fresh terminals can find `claude`.
+- Log in with your Claude subscription unless you intentionally choose API mode.
+- Use budget mode for low-stakes exploration or when you are close to usage limits.
+- Use batch mode for repeatable scripted prompts or automation glue.
+- Run the verify script after setup.

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "autoUpdatesChannel": "stable",
+  "minimumVersion": "2.1.116",
+  "permissions": {
+    "allow": [
+      "Bash(pwd)",
+      "Bash(ls)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(rg *)",
+      "Bash(grep *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(which *)",
+      "Bash(command -v *)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(python --version)",
+      "Bash(python3 --version)",
+      "Bash(uv --version)",
+      "Bash(claude --version)"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(claude mcp *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./CLAUDE.local.md)",
+      "Read(./.claude/settings.local.json)",
+      "Read(./secrets/**)",
+      "Bash(cat .env)",
+      "Bash(cat .env *)",
+      "Bash(printenv)",
+      "Bash(env)",
+      "Bash(export *)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80",
+    "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
+    "CLAUDE_CODE_ENABLE_AWAY_SUMMARY": "1"
+  },
+  "includeGitInstructions": true,
+  "showThinkingSummaries": true,
+  "cleanupPeriodDays": 20,
+  "plansDirectory": "./.claude/plans"
+}

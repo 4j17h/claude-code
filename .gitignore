@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+!.env.template
+.claude/settings.local.json
+.claude/plans/
+.claude/skills/
+CLAUDE.local.md
+.tools/
+.code-review-graph/
+agent-browser.json
+browser-data/
+shots/
+*.auth.json
+*.state.json
