@@ -13,7 +13,7 @@ The supported baseline is the part every engineering team should be able to rely
 - Shared repo settings in `.claude/settings.json`
 - Empty MCP baseline in `.mcp.json`
 - Setup and verification scripts in `scripts/setup-macos.sh`, `scripts/setup-windows.ps1`, `scripts/verify-setup.sh`, and `scripts/verify-setup.ps1`
-- Core launch modes in `scripts/claude-budget-mode.*`, `scripts/claude-batch-mode.*`, `scripts/claude-batch-isolated-mode.*`, `scripts/claude-batch-json-mode.*`, `scripts/claude-batch-stream-json-mode.*`, `scripts/claude-plan-mode.*`, and `scripts/claude-api-mode.*`
+- Core launch modes in `scripts/claude-budget-mode.*`, `scripts/claude-batch-mode.*`, `scripts/claude-batch-commit-mode.*`, `scripts/claude-batch-isolated-mode.*`, `scripts/claude-batch-json-mode.*`, `scripts/claude-batch-stream-json-mode.*`, `scripts/claude-plan-mode.*`, and `scripts/claude-api-mode.*`
 - Local bootstrap files created by setup: `.env`, `CLAUDE.local.md`, `.claude/settings.local.json`
 
 ### Supported optional
@@ -38,6 +38,7 @@ These integrations stay opt-in and may need manual follow-up depending on OS, sh
 - Interactive default: run `claude` after setup when you want the normal subscription or Teams workflow.
 - Budget mode: use `scripts/claude-budget-mode.*` for low-stakes exploration when lower effort and earlier compaction are worth the tradeoff.
 - Batch mode: use `scripts/claude-batch-mode.*` for repeatable scripted prompts and better cache reuse.
+- Batch commit mode: use `scripts/claude-batch-commit-mode.*` when you want a cheap one-shot commit-message draft from staged changes.
 - Batch isolated mode: use `scripts/claude-batch-isolated-mode.*` when automation should ignore ambient MCP, skills, and slash-command state.
 - Batch JSON mode: use `scripts/claude-batch-json-mode.*` when you want machine-readable JSON output for automation.
 - Batch stream-json mode: use `scripts/claude-batch-stream-json-mode.*` when you want realtime structured output for automation.
@@ -48,6 +49,7 @@ These integrations stay opt-in and may need manual follow-up depending on OS, sh
 
 ## Permission safety
 
+- `scripts/claude-batch-commit-mode.*` disables tools and slash commands, ignores local setting sources, skips session persistence, and defaults to `haiku` for cheap one-shot commit generation.
 - `scripts/claude-batch-isolated-mode.*` uses `--permission-mode dontAsk`, disables slash commands, and ignores ambient MCP config via `--strict-mcp-config` with an explicit empty `--mcp-config`.
 - `scripts/claude-plan-mode.*` uses `--permission-mode plan` by default.
 - `scripts/claude-autopilot-lite.*` defaults to `--permission-mode acceptEdits` unless `CLAUDE_AUTOPILOT_PERMISSION_MODE` overrides it.

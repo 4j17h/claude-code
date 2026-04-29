@@ -40,7 +40,7 @@ The supported baseline includes:
 - Shared repo guidance in `CLAUDE.md`
 - Setup scripts for macOS and Windows
 - Verification scripts for preflight and machine readiness
-- Core launch modes: normal interactive use, budget mode, batch mode, batch isolated mode, batch JSON mode, batch stream-json mode, plan mode, and API mode
+- Core launch modes: normal interactive use, budget mode, batch mode, batch commit mode, batch isolated mode, batch JSON mode, batch stream-json mode, plan mode, and API mode
 - Local bootstrap files created by setup: `.env`, `CLAUDE.local.md`, `.claude/settings.local.json`
 
 Experimental launch wrapper:
@@ -177,6 +177,34 @@ Windows PowerShell:
 ```
 
 Batch mode uses cache-friendly pipe-mode defaults.
+
+### Batch commit mode
+
+Use this when you want a cheap one-shot commit-message draft from the staged git diff.
+
+macOS/Linux:
+
+```bash
+bash scripts/claude-batch-commit-mode.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\claude-batch-commit-mode.ps1
+```
+
+This helper reads `git diff --cached` locally, then sends a stripped-down commit-message prompt to Claude. It defaults to `haiku`, disables tools and slash commands, ignores local setting sources, and skips session persistence.
+
+Add optional context when needed:
+
+```bash
+bash scripts/claude-batch-commit-mode.sh "Emphasize the execution-mode docs and verification updates."
+```
+
+Set `CLAUDE_COMMIT_MODEL` if you want a model other than `haiku`.
+
+The script requires staged changes. If nothing is staged yet, it exits with a clear error so you do not accidentally generate a message against the wrong diff.
 
 ### Batch isolated mode
 
@@ -326,6 +354,7 @@ Use this rough decision guide:
 - `claude`: normal interactive work
 - `scripts/claude-budget-mode.*`: low-stakes or cost-sensitive exploration
 - `scripts/claude-batch-mode.*`: scripted, repeatable prompts
+- `scripts/claude-batch-commit-mode.*`: staged diff to low-cost commit-message draft
 - `scripts/claude-batch-isolated-mode.*`: scripted automation that should ignore ambient MCP and skills state
 - `scripts/claude-batch-json-mode.*`: structured JSON output for automation
 - `scripts/claude-batch-stream-json-mode.*`: realtime structured output for automation
@@ -338,6 +367,7 @@ Use this rough decision guide:
 
 Some wrappers intentionally set Claude CLI permission behavior:
 
+- `scripts/claude-batch-commit-mode.*` disables tools and slash commands, ignores local setting sources, and skips session persistence for cheap one-shot commit generation
 - `scripts/claude-batch-isolated-mode.*` uses `--permission-mode dontAsk` and an explicit empty `--mcp-config` to minimize local variability
 - `scripts/claude-plan-mode.*` uses `--permission-mode plan`
 - `scripts/claude-autopilot-lite.*` defaults to `--permission-mode acceptEdits`

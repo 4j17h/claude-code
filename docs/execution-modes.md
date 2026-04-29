@@ -24,6 +24,13 @@ These modes are part of the supported baseline.
 - Use when: repeatable scripted prompts where text output is enough
 - Behavior: `claude -p --exclude-dynamic-system-prompt-sections`
 
+### Batch commit mode
+
+- Scripts: `scripts/claude-batch-commit-mode.sh`, `scripts/claude-batch-commit-mode.ps1`
+- Use when: you want a cheap one-shot commit-message draft from the staged git diff
+- Behavior: reads `git diff --cached` locally, then pipes a commit-message prompt to `claude -p --no-session-persistence --model haiku --tools "" --disable-slash-commands --setting-sources "" --exclude-dynamic-system-prompt-sections`
+- Notes: requires staged changes; pass extra text after the script name as context, and set `CLAUDE_COMMIT_MODEL` to override the default model
+
 ### Batch isolated mode
 
 - Scripts: `scripts/claude-batch-isolated-mode.sh`, `scripts/claude-batch-isolated-mode.ps1`
@@ -85,6 +92,7 @@ Environment variables:
 
 Permission behavior is part of the managed operating model.
 
+- `scripts/claude-batch-commit-mode.*` disables built-in tools and slash commands, ignores local setting sources, and skips session persistence for cheap one-shot commit generation
 - `scripts/claude-batch-isolated-mode.*` uses `--permission-mode dontAsk` and ignores ambient MCP config via an explicit empty `--mcp-config`
 - `scripts/claude-plan-mode.*` uses `--permission-mode plan`
 - `scripts/claude-autopilot-lite.*` and `scripts/claude-autopilot-worktree.*` default to `--permission-mode acceptEdits`
@@ -102,6 +110,7 @@ Only use them in isolated sandboxes with no internet access. Do not normalize th
 - Use `claude` for normal interactive work.
 - Use budget mode for low-cost exploration.
 - Use batch mode when you want text output from a scripted call.
+- Use batch commit mode when you want a low-cost commit-message draft from staged changes.
 - Use batch isolated mode when automation should minimize surprises from local MCP and skills state.
 - Use batch JSON mode when a script needs a single structured result.
 - Use batch stream-json mode when a script needs realtime structured events.
@@ -118,6 +127,7 @@ These examples are intentionally simple and map to the kinds of tasks teams usua
 | Interactive | `claude` then ask `Review README.md and tell me what is still unclear for first-time users.` |
 | Budget | `bash scripts/claude-budget-mode.sh "List low-risk cleanup opportunities in README.md without editing files."` |
 | Batch | `bash scripts/claude-batch-mode.sh "Summarize docs/support-matrix.md in 5 bullets for an onboarding email."` |
+| Batch commit | `bash scripts/claude-batch-commit-mode.sh "Emphasize the onboarding and execution-mode documentation updates."` |
 | Batch isolated | `bash scripts/claude-batch-isolated-mode.sh "Compare README.md and docs/execution-modes.md and list onboarding mismatches without using tools."` |
 | Batch JSON | `bash scripts/claude-batch-json-mode.sh "Return a JSON object with keys baseline, optional, and experimental summarizing docs/support-matrix.md."` |
 | Batch stream-json | `bash scripts/claude-batch-stream-json-mode.sh "Stream a structured review of README.md and docs/execution-modes.md for onboarding gaps."` |
