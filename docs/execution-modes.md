@@ -99,3 +99,19 @@ Only use them in isolated sandboxes with no internet access. Do not normalize th
 - Use plan mode when the right first step is analysis, clarification, and planning rather than editing.
 - Use autopilot-lite only for experimental bounded autonomy in the current tree.
 - Use autopilot-worktree when you want the same autonomy model with git worktree isolation.
+
+## Example prompts
+
+These examples are intentionally simple and map to the kinds of tasks teams usually run through each mode.
+
+| Mode | Example |
+| --- | --- |
+| Interactive | `claude` then ask `Review README.md and tell me what is still unclear for first-time users.` |
+| Budget | `bash scripts/claude-budget-mode.sh "List low-risk cleanup opportunities in README.md without editing files."` |
+| Batch | `bash scripts/claude-batch-mode.sh "Summarize docs/support-matrix.md in 5 bullets for an onboarding email."` |
+| Batch JSON | `bash scripts/claude-batch-json-mode.sh "Return a JSON object with keys baseline, optional, and experimental summarizing docs/support-matrix.md."` |
+| Batch stream-json | `bash scripts/claude-batch-stream-json-mode.sh "Stream a structured review of README.md and docs/execution-modes.md for onboarding gaps."` |
+| Plan | `bash scripts/claude-plan-mode.sh "Plan a Windows rollout for this repo and list risks, rollout gates, and validation steps."` |
+| API | `bash scripts/claude-api-mode.sh "Summarize the last README changes for release notes."` |
+| Autopilot-lite | `bash scripts/claude-autopilot-lite.sh "Tighten README wording, validate docs, and stop when the doc slice is complete."` |
+| Autopilot-worktree | `bash scripts/claude-autopilot-worktree.sh "Refactor the verification docs in an isolated worktree and verify the result before stopping."` |

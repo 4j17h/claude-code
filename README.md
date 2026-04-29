@@ -214,6 +214,18 @@ Windows PowerShell:
 
 This wrapper uses `--output-format stream-json` and `--include-partial-messages`. Add `--include-hook-events` only when the consumer actually needs Claude hook lifecycle events.
 
+Minimal automation example:
+
+```bash
+bash scripts/claude-batch-stream-json-mode.sh "Summarize onboarding gaps in README.md" \
+	| python3 -c 'import json, sys
+for line in sys.stdin:
+		event = json.loads(line)
+		print(event.get("type", "unknown"))'
+```
+
+For production automation, prefer capturing the JSONL stream to a file and consuming it defensively, because event shapes can evolve across Claude CLI versions.
+
 ### Plan mode
 
 Use this when you want planning-first work before any implementation. This wrapper sets Claude CLI `--permission-mode plan` and appends a planning-specific prompt overlay.
