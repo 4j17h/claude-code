@@ -40,7 +40,7 @@ These integrations stay opt-in and may need manual follow-up depending on OS, sh
 
 ## Ownership boundaries
 
-- Org-owned, committed files: `CLAUDE.md`, `.claude/settings.json`, `.mcp.json`, `.env.template`, and the `scripts/` directory.
+- Org-owned, committed files: `README.md`, `CLAUDE.md`, `.claude/settings.json`, `.mcp.json`, `.env.template`, and the `scripts/` directory.
 - User-owned, local-only files: `.env`, `CLAUDE.local.md`, `.claude/settings.local.json`.
 - Optional tools are never required for initial setup success.
 
