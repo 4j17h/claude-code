@@ -44,6 +44,7 @@ function Find-ClaudeCandidate {
 
 function Check-File {
   param([string]$Path)
+
   if (Test-Path $Path) {
     $resolved = (Resolve-Path $Path).Path
     $prefix = "$RepoRoot\"
@@ -88,54 +89,90 @@ Check-File (Join-Path $RepoRoot 'scripts\verify-setup.ps1')
 
 $pythonCommand = if (Test-Command py) { 'py' } elseif (Test-Command python) { 'python' } else { $null }
 if ($pythonCommand) {
-  $jsonScript = @"
-import json
-from pathlib import Path
-root = Path(r'$RepoRoot')
-for rel in ['.claude/settings.json', '.mcp.json']:
-    json.loads((root / rel).read_text())
+  $jsonScript = @(
+    'import json',
+    'import os',
+    'from pathlib import Path',
+    'root = Path(os.environ["REPO_ROOT"])',
+    'for rel in [".claude/settings.json", ".mcp.json"]:',
+    '    json.loads((root / rel).read_text())',
+    '',
+    'local_settings = root / ".claude/settings.local.json"',
+    'if local_settings.exists():',
+    '    json.loads(local_settings.read_text())'
+  ) -join "`n"
+
+  $previousRepoRoot = $env:REPO_ROOT
+  $env:REPO_ROOT = $RepoRoot
+
+  try {
+    if ($pythonCommand -eq 'py') {
+      $jsonScript | py -3 -
+    } else {
+      $jsonScript | python -
+    }
+
+    if ($LASTEXITCODE -eq 0) {
+      Write-Ok 'JSON files parse successfully'
+    } else {
+      Write-Fail 'JSON parsing failed'
+    }
+  } finally {
+    if ($null -ne $previousRepoRoot) {
+      $env:REPO_ROOT = $previousRepoRoot
+    } else {
+      Remove-Item Env:REPO_ROOT -ErrorAction SilentlyContinue
+    }
+  }
+} else {
+  Write-WarnLine 'Python is missing; skipped JSON parsing.'
+}
+
 if (-not $RepoOnly) {
   Check-LocalBootstrapFile (Join-Path $RepoRoot '.claude\settings.local.json') 'scripts\setup-macos.sh or scripts\setup-windows.ps1'
   Check-LocalBootstrapFile (Join-Path $RepoRoot 'CLAUDE.local.md') 'scripts\setup-macos.sh or scripts\setup-windows.ps1'
   Check-LocalBootstrapFile (Join-Path $RepoRoot '.env') 'scripts\setup-macos.sh or scripts\setup-windows.ps1'
 
   if (Test-Command claude) {
-    Write-Ok (claude --version)
-    try {
-      Write-Ok (claude auth status --text 2>&1)
-    } catch {
-      Write-WarnLine 'claude auth status indicates you are not logged in yet.'
+    $claudeVersion = claude --version
+    Write-Ok $claudeVersion
+
+    $authOutput = claude auth status --text 2>&1
+    if ($LASTEXITCODE -eq 0) {
+      Write-Ok (($authOutput | Out-String).TrimEnd())
+    } else {
+      Write-WarnLine (($authOutput | Out-String).TrimEnd())
     }
-    Write-Ok 'JSON files parse successfully'
+  } else {
     $claudeCandidate = Find-ClaudeCandidate
     if ($claudeCandidate) {
       Write-Fail "claude exists at $claudeCandidate but PATH has not refreshed yet. Open a new PowerShell window and rerun verification."
     } else {
       Write-Fail 'claude command is not on PATH'
     }
-    Write-Fail 'JSON parsing failed'
-} else {
-  if (Test-Command git) {
-    Write-Ok (git --version)
-  } else {
-    Write-Fail 'git command is not on PATH'
   }
-  try {
+
   if (Test-Command uv) {
     Write-Ok (uv --version)
   } else {
     Write-WarnLine 'uv is not installed yet (needed only for optional Python extras).'
   }
-  $claudeCandidate = Find-ClaudeCandidate
+
+  if (Test-Command git) {
+    Write-Ok (git --version)
+  } else {
+    Write-Fail 'git command is not on PATH'
+  }
+
   if ($pythonCommand) {
     if ($pythonCommand -eq 'py') {
       Write-Ok ((py -3 --version) 2>&1)
     } else {
       Write-Ok (python --version)
     }
-    Write-Fail 'claude command is not on PATH'
+  } else {
     Write-WarnLine 'Python is not installed yet (needed for claude-usage).'
-}
+  }
 
   if (Test-Path (Join-Path $RepoRoot '.tools\claude-usage\.git')) {
     Write-Ok 'claude-usage checkout is present'
@@ -147,12 +184,8 @@ if (-not $RepoOnly) {
     if (Test-Command $optionalCmd) {
       Write-Ok "optional tool available: $optionalCmd"
     }
-  Write-WarnLine 'uv is not installed yet (needed only for optional Python extras).'
-} else {
-  Write-Ok 'repo-only mode skips local bootstrap and machine checks'
-}
+  }
 
-if (-not $RepoOnly) {
   Write-Host ''
   Write-Host 'Manual in-session checks to run next:'
   Write-Host '  /status'
@@ -165,30 +198,9 @@ if (-not $RepoOnly) {
   Write-Host '  local bootstrap: .env, CLAUDE.local.md, .claude/settings.local.json'
   Write-Host '  optional tools: rtk, cozempic, code-review-graph, agent-browser, claude-usage'
 } else {
+  Write-Ok 'repo-only mode skips local bootstrap and machine checks'
   Write-Host ''
   Write-Host 'Repo-only mode validated the committed baseline.'
 }
-  Write-Ok 'claude-usage checkout is present'
-} else {
-  Write-WarnLine 'claude-usage checkout is missing; run scripts\start-usage-dashboard.ps1 or the setup script.'
-}
-
-foreach ($optionalCmd in @('rtk', 'cozempic', 'code-review-graph', 'agent-browser')) {
-  if (Test-Command $optionalCmd) {
-    Write-Ok "optional tool available: $optionalCmd"
-  }
-}
-
-Write-Host ''
-Write-Host 'Manual in-session checks to run next:'
-Write-Host '  /status'
-Write-Host '  /memory'
-Write-Host '  /context'
-Write-Host '  /usage'
-Write-Host ''
-Write-Host 'Support tiers:'
-Write-Host '  baseline: Claude Code, shared repo settings, setup/verify/mode scripts'
-Write-Host '  local bootstrap: .env, CLAUDE.local.md, .claude/settings.local.json'
-Write-Host '  optional tools: rtk, cozempic, code-review-graph, agent-browser, claude-usage'
 
 exit $Status
