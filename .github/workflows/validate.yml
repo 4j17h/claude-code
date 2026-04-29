@@ -17,7 +17,7 @@ jobs:
         run: bash scripts/verify-setup.sh --repo-only
 
       - name: Validate bash syntax
-        run: bash -n scripts/setup-macos.sh scripts/verify-setup.sh scripts/claude-api-mode.sh scripts/claude-batch-mode.sh scripts/claude-budget-mode.sh scripts/start-usage-dashboard.sh
+        run: bash -n scripts/setup-macos.sh scripts/verify-setup.sh scripts/claude-api-mode.sh scripts/claude-batch-mode.sh scripts/claude-batch-json-mode.sh scripts/claude-batch-stream-json-mode.sh scripts/claude-budget-mode.sh scripts/claude-plan-mode.sh scripts/claude-autopilot-lite.sh scripts/claude-autopilot-worktree.sh scripts/start-usage-dashboard.sh
 
   verify-windows:
     runs-on: windows-latest
@@ -36,7 +36,12 @@ jobs:
             'scripts\verify-setup.ps1',
             'scripts\claude-api-mode.ps1',
             'scripts\claude-batch-mode.ps1',
+            'scripts\claude-batch-json-mode.ps1',
+            'scripts\claude-batch-stream-json-mode.ps1',
             'scripts\claude-budget-mode.ps1',
+            'scripts\claude-plan-mode.ps1',
+            'scripts\claude-autopilot-lite.ps1',
+            'scripts\claude-autopilot-worktree.ps1',
             'scripts\start-usage-dashboard.ps1'
           )
 

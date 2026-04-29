@@ -10,6 +10,7 @@
 - Local bootstrap files are machine-specific and created by the setup scripts: `.env`, `CLAUDE.local.md`, and `.claude/settings.local.json`.
 - Optional integrations are tiered separately from the baseline so they do not block initial adoption.
 - See `docs/support-matrix.md` for support tiers, ownership boundaries, and mode selection.
+- See `docs/execution-modes.md` for launch-mode guidance and permission safety notes.
 
 ## Shared workflow defaults
 - Keep startup context stable for better cache reuse.
@@ -28,8 +29,16 @@
 - Prefer stable prompts and stable tools for repeat workflows.
 - For scripted multi-user runs, prefer `claude -p --exclude-dynamic-system-prompt-sections`.
 - Use `scripts/claude-batch-mode.*` when you want that cache-friendly pipe-mode pattern standardized for the team.
+- Use `scripts/claude-batch-json-mode.*` when you want machine-readable batch output for automation.
+- Use `scripts/claude-batch-stream-json-mode.*` when you want realtime structured batch output for automation.
+- Use `scripts/claude-plan-mode.*` when you want planning-first sessions with Claude CLI `--permission-mode plan`.
 - Prefer text-native context: source files, diffs, logs, CLI output, and MCP resources.
 - Avoid screenshots, PDFs, and large pasted blobs unless layout or rendering is the point.
+
+## Execution modes
+- Use `scripts/claude-autopilot-lite.*` only as an experimental bounded execution wrapper.
+- Use `scripts/claude-autopilot-worktree.*` only as an experimental bounded execution wrapper with worktree isolation.
+- Do not normalize `--allow-dangerously-skip-permissions`, `--dangerously-skip-permissions`, or `--permission-mode bypassPermissions` into the team baseline; those belong only in isolated sandboxes with no internet access.
 
 ## Auth and secrets
 - Subscription login is the default path for interactive use.
@@ -54,4 +63,6 @@
 - Use `scripts/verify-setup.*` to confirm the supported baseline after setup.
 - Use budget mode for low-stakes exploration or when you are close to usage limits.
 - Use batch mode for repeatable scripted prompts or automation glue.
+- Use batch stream-json mode for realtime automation or streaming integrations.
+- Use plan mode when you want planning-first work without immediately switching into execution.
 - Optional tools should be enabled only after the baseline is working.

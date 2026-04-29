@@ -19,7 +19,7 @@ Standalone Claude Code is strong for individual use. This repository adds the mi
 - Shared policy defaults in `.claude/settings.json`
 - Clear separation between committed org-owned files and machine-local files
 - Verification scripts for repo preflight and machine readiness
-- Defined operating modes for interactive, budget, batch, and API-backed workflows
+- Defined operating modes for interactive, budget, batch, batch JSON, planning-first, and API-backed workflows
 - A support model for optional tools such as `claude-usage`, `rtk`, and `code-review-graph`
 
 ## Repository Layout
@@ -27,6 +27,7 @@ Standalone Claude Code is strong for individual use. This repository adds the mi
 - `README.md`: quick start and daily usage guide
 - `CLAUDE.md`: workflow defaults, support model, and operating guidance
 - `docs/support-matrix.md`: support tiers, boundaries, and mode selection
+- `docs/execution-modes.md`: detailed launch-mode guidance and permission safety notes
 - `scripts/`: setup, verification, launch modes, and optional dashboard entry points
 - `.claude/settings.json`: shared Claude Code defaults and permission policy
 - `.env.template`: local API-mode template copied to `.env` by setup
@@ -39,8 +40,13 @@ The supported baseline includes:
 - Shared repo guidance in `CLAUDE.md`
 - Setup scripts for macOS and Windows
 - Verification scripts for preflight and machine readiness
-- Core launch modes: normal interactive use, budget mode, batch mode, and API mode
+- Core launch modes: normal interactive use, budget mode, batch mode, batch JSON mode, batch stream-json mode, plan mode, and API mode
 - Local bootstrap files created by setup: `.env`, `CLAUDE.local.md`, `.claude/settings.local.json`
+
+Experimental launch wrapper:
+
+- `scripts/claude-autopilot-lite.*`
+- `scripts/claude-autopilot-worktree.*`
 
 Optional tooling is supported or experimental depending on the integration. See `docs/support-matrix.md` for the exact tiering.
 
@@ -126,6 +132,8 @@ These files are intentionally ignored by git and should not be committed.
 
 ## Daily Usage
 
+For the full mode-by-mode guide, see `docs/execution-modes.md`.
+
 ### Default interactive mode
 
 Use this for normal Claude subscription or Teams workflows.
@@ -170,6 +178,58 @@ Windows PowerShell:
 
 Batch mode uses cache-friendly pipe-mode defaults.
 
+### Batch JSON mode
+
+Use this when you want machine-readable JSON output for scripts, pipelines, or automation.
+
+macOS/Linux:
+
+```bash
+bash scripts/claude-batch-json-mode.sh "your prompt here"
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\claude-batch-json-mode.ps1 "your prompt here"
+```
+
+Batch JSON mode uses `--output-format json` together with the same cache-friendly prompt treatment as the normal batch wrapper.
+
+### Batch stream-json mode
+
+Use this when you want realtime structured output for streaming consumers or automation.
+
+macOS/Linux:
+
+```bash
+bash scripts/claude-batch-stream-json-mode.sh "your prompt here"
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\claude-batch-stream-json-mode.ps1 "your prompt here"
+```
+
+This wrapper uses `--output-format stream-json` and `--include-partial-messages`. Add `--include-hook-events` only when the consumer actually needs Claude hook lifecycle events.
+
+### Plan mode
+
+Use this when you want planning-first work before any implementation. This wrapper sets Claude CLI `--permission-mode plan` and appends a planning-specific prompt overlay.
+
+macOS/Linux:
+
+```bash
+bash scripts/claude-plan-mode.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\claude-plan-mode.ps1
+```
+
 ### API mode
 
 Use this only when you intentionally want local API credentials from `.env`.
@@ -191,6 +251,42 @@ Windows PowerShell:
 
 Subscription login remains the default path for interactive use.
 
+### Experimental autopilot-lite mode
+
+Use this only when you want a bounded autonomous execution wrapper on top of the supported baseline.
+
+macOS/Linux:
+
+```bash
+bash scripts/claude-autopilot-lite.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\claude-autopilot-lite.ps1
+```
+
+Autopilot-lite is experimental. It defaults to `--permission-mode acceptEdits`, appends an execution-focused prompt overlay, and is meant to stay inside the normal team safety model rather than bypass it.
+
+### Experimental autopilot-worktree mode
+
+Use this when you want the same bounded autonomy model but with git worktree isolation.
+
+macOS/Linux:
+
+```bash
+bash scripts/claude-autopilot-worktree.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\claude-autopilot-worktree.ps1
+```
+
+Autopilot-worktree is experimental. It provisions a fresh Claude worktree session, defaults to `--permission-mode acceptEdits`, and is the safer place to trial autonomous execution without running directly in the main working tree.
+
 ## Mode Selection
 
 Use this rough decision guide:
@@ -198,7 +294,28 @@ Use this rough decision guide:
 - `claude`: normal interactive work
 - `scripts/claude-budget-mode.*`: low-stakes or cost-sensitive exploration
 - `scripts/claude-batch-mode.*`: scripted, repeatable prompts
+- `scripts/claude-batch-json-mode.*`: structured JSON output for automation
+- `scripts/claude-batch-stream-json-mode.*`: realtime structured output for automation
+- `scripts/claude-plan-mode.*`: planning-first work with `--permission-mode plan`
 - `scripts/claude-api-mode.*`: explicit local API-key workflows
+- `scripts/claude-autopilot-lite.*`: experimental bounded execution wrapper
+- `scripts/claude-autopilot-worktree.*`: experimental bounded execution wrapper with worktree isolation
+
+## Permission Mode And Safety Warnings
+
+Some wrappers intentionally set Claude CLI permission behavior:
+
+- `scripts/claude-plan-mode.*` uses `--permission-mode plan`
+- `scripts/claude-autopilot-lite.*` defaults to `--permission-mode acceptEdits`
+- `scripts/claude-autopilot-worktree.*` defaults to `--permission-mode acceptEdits` and provisions a fresh worktree session
+
+The following are not part of the supported baseline and should be treated as high-risk overrides:
+
+- `--allow-dangerously-skip-permissions`
+- `--dangerously-skip-permissions`
+- `--permission-mode bypassPermissions`
+
+Only use them in isolated sandboxes with no internet access. Do not normalize them into team defaults, shared scripts, or shared documentation as a standard operating pattern.
 
 ## Optional Tooling
 
@@ -323,3 +440,4 @@ User-owned, local-only files:
 
 - `CLAUDE.md` for workflow defaults and policy
 - `docs/support-matrix.md` for support tiers and boundaries
+- `docs/execution-modes.md` for launch modes, automation wrappers, and permission safety
