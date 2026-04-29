@@ -29,6 +29,7 @@
 - Prefer stable prompts and stable tools for repeat workflows.
 - For scripted multi-user runs, prefer `claude -p --exclude-dynamic-system-prompt-sections`.
 - Use `scripts/claude-batch-mode.*` when you want that cache-friendly pipe-mode pattern standardized for the team.
+- Use `scripts/claude-batch-isolated-mode.*` when automation should ignore local MCP and skills variance for more reproducible runs.
 - Use `scripts/claude-batch-json-mode.*` when you want machine-readable batch output for automation.
 - Use `scripts/claude-batch-stream-json-mode.*` when you want realtime structured batch output for automation.
 - Use `scripts/claude-plan-mode.*` when you want planning-first sessions with Claude CLI `--permission-mode plan`.
@@ -63,6 +64,7 @@
 - Use `scripts/verify-setup.*` to confirm the supported baseline after setup.
 - Use budget mode for low-stakes exploration or when you are close to usage limits.
 - Use batch mode for repeatable scripted prompts or automation glue.
+- Use batch isolated mode when automation should stay stable even if local MCP or skills state differs across machines.
 - Use batch stream-json mode for realtime automation or streaming integrations.
 - Use plan mode when you want planning-first work without immediately switching into execution.
 - Optional tools should be enabled only after the baseline is working.

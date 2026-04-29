@@ -24,6 +24,13 @@ These modes are part of the supported baseline.
 - Use when: repeatable scripted prompts where text output is enough
 - Behavior: `claude -p --exclude-dynamic-system-prompt-sections`
 
+### Batch isolated mode
+
+- Scripts: `scripts/claude-batch-isolated-mode.sh`, `scripts/claude-batch-isolated-mode.ps1`
+- Use when: scripted automation should ignore local MCP, skills, and slash-command variance
+- Behavior: `claude -p --strict-mcp-config --mcp-config '{"mcpServers":{}}' --disable-slash-commands --exclude-dynamic-system-prompt-sections --permission-mode dontAsk`
+- Notes: append `--allowedTools Read` only when the prompt explicitly needs file reads or uploaded-file references
+
 ### Batch JSON mode
 
 - Scripts: `scripts/claude-batch-json-mode.sh`, `scripts/claude-batch-json-mode.ps1`
@@ -78,6 +85,7 @@ Environment variables:
 
 Permission behavior is part of the managed operating model.
 
+- `scripts/claude-batch-isolated-mode.*` uses `--permission-mode dontAsk` and ignores ambient MCP config via an explicit empty `--mcp-config`
 - `scripts/claude-plan-mode.*` uses `--permission-mode plan`
 - `scripts/claude-autopilot-lite.*` and `scripts/claude-autopilot-worktree.*` default to `--permission-mode acceptEdits`
 
@@ -94,6 +102,7 @@ Only use them in isolated sandboxes with no internet access. Do not normalize th
 - Use `claude` for normal interactive work.
 - Use budget mode for low-cost exploration.
 - Use batch mode when you want text output from a scripted call.
+- Use batch isolated mode when automation should minimize surprises from local MCP and skills state.
 - Use batch JSON mode when a script needs a single structured result.
 - Use batch stream-json mode when a script needs realtime structured events.
 - Use plan mode when the right first step is analysis, clarification, and planning rather than editing.
@@ -109,6 +118,7 @@ These examples are intentionally simple and map to the kinds of tasks teams usua
 | Interactive | `claude` then ask `Review README.md and tell me what is still unclear for first-time users.` |
 | Budget | `bash scripts/claude-budget-mode.sh "List low-risk cleanup opportunities in README.md without editing files."` |
 | Batch | `bash scripts/claude-batch-mode.sh "Summarize docs/support-matrix.md in 5 bullets for an onboarding email."` |
+| Batch isolated | `bash scripts/claude-batch-isolated-mode.sh "Compare README.md and docs/execution-modes.md and list onboarding mismatches without using tools."` |
 | Batch JSON | `bash scripts/claude-batch-json-mode.sh "Return a JSON object with keys baseline, optional, and experimental summarizing docs/support-matrix.md."` |
 | Batch stream-json | `bash scripts/claude-batch-stream-json-mode.sh "Stream a structured review of README.md and docs/execution-modes.md for onboarding gaps."` |
 | Plan | `bash scripts/claude-plan-mode.sh "Plan a Windows rollout for this repo and list risks, rollout gates, and validation steps."` |

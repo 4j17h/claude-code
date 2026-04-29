@@ -40,7 +40,7 @@ The supported baseline includes:
 - Shared repo guidance in `CLAUDE.md`
 - Setup scripts for macOS and Windows
 - Verification scripts for preflight and machine readiness
-- Core launch modes: normal interactive use, budget mode, batch mode, batch JSON mode, batch stream-json mode, plan mode, and API mode
+- Core launch modes: normal interactive use, budget mode, batch mode, batch isolated mode, batch JSON mode, batch stream-json mode, plan mode, and API mode
 - Local bootstrap files created by setup: `.env`, `CLAUDE.local.md`, `.claude/settings.local.json`
 
 Experimental launch wrapper:
@@ -178,6 +178,26 @@ Windows PowerShell:
 
 Batch mode uses cache-friendly pipe-mode defaults.
 
+### Batch isolated mode
+
+Use this when you want scripted automation with fewer surprises from local MCP, skills, or slash-command state.
+
+macOS/Linux:
+
+```bash
+bash scripts/claude-batch-isolated-mode.sh "your prompt here"
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\claude-batch-isolated-mode.ps1 "your prompt here"
+```
+
+This wrapper uses `--strict-mcp-config`, an explicit empty `--mcp-config`, `--disable-slash-commands`, `--exclude-dynamic-system-prompt-sections`, and `--permission-mode dontAsk` to keep automation runs more reproducible across machines.
+
+If a prompt truly needs file reads or uploaded-file references, append `--allowedTools Read` explicitly rather than broadening the default.
+
 ### Batch JSON mode
 
 Use this when you want machine-readable JSON output for scripts, pipelines, or automation.
@@ -306,6 +326,7 @@ Use this rough decision guide:
 - `claude`: normal interactive work
 - `scripts/claude-budget-mode.*`: low-stakes or cost-sensitive exploration
 - `scripts/claude-batch-mode.*`: scripted, repeatable prompts
+- `scripts/claude-batch-isolated-mode.*`: scripted automation that should ignore ambient MCP and skills state
 - `scripts/claude-batch-json-mode.*`: structured JSON output for automation
 - `scripts/claude-batch-stream-json-mode.*`: realtime structured output for automation
 - `scripts/claude-plan-mode.*`: planning-first work with `--permission-mode plan`
@@ -317,6 +338,7 @@ Use this rough decision guide:
 
 Some wrappers intentionally set Claude CLI permission behavior:
 
+- `scripts/claude-batch-isolated-mode.*` uses `--permission-mode dontAsk` and an explicit empty `--mcp-config` to minimize local variability
 - `scripts/claude-plan-mode.*` uses `--permission-mode plan`
 - `scripts/claude-autopilot-lite.*` defaults to `--permission-mode acceptEdits`
 - `scripts/claude-autopilot-worktree.*` defaults to `--permission-mode acceptEdits` and provisions a fresh worktree session
